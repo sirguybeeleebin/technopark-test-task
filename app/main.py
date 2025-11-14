@@ -17,10 +17,6 @@ from app.engines.postgres import make_postgres_engine
 from app.repositories.calc_result import make_calc_result_repository
 from app.services.calc import CalculationService
 
-# ---------------------------
-#   ARGPARSE + ENV LOADING
-# ---------------------------
-
 parser = argparse.ArgumentParser(description="FastAPI приложение с настраиваемым .env файлом")
 parser.add_argument(
     "--env-file",
@@ -35,11 +31,6 @@ if env_path.exists():
     load_dotenv(env_path)
 else:
     print(f"Внимание: файл .env {env_path} не найден, используются переменные окружения по умолчанию")
-
-
-# ---------------------------
-#        APP CONFIG
-# ---------------------------
 
 APP_TITLE = os.getenv("APP_TITLE", "Калькулятор стоимости")
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
@@ -60,16 +51,10 @@ POSTGRES_MAX_OVERFLOW = int(os.getenv("POSTGRES_MAX_OVERFLOW", 10))
 POSTGRES_POOL_TIMEOUT = int(os.getenv("POSTGRES_POOL_TIMEOUT", 30))
 POSTGRES_POOL_RECYCLE = int(os.getenv("POSTGRES_POOL_RECYCLE", 1800))
 
-# ---- FIX: ЧИСТЫЙ DSN БЕЗ options
 DATABASE_DSN = (
     f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
     f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 )
-
-
-# ---------------------------
-#     JSON LOG FORMATTER
-# ---------------------------
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -80,7 +65,6 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
             "source": f"{record.pathname}:{record.lineno}",
         }, ensure_ascii=False)
-
 
 logging_config.dictConfig({
     "version": 1,
@@ -103,15 +87,8 @@ logging_config.dictConfig({
 
 log = logging.getLogger(__name__)
 
-
-# ---------------------------
-#        LIFESPAN
-# ---------------------------
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    # ---- FIX: передаём schema сюда
     postgres_engine = make_postgres_engine(
         dsn=DATABASE_DSN,
         schema=POSTGRES_SCHEMA
@@ -125,50 +102,33 @@ async def lifespan(app: FastAPI):
             pool_recycle=POSTGRES_POOL_RECYCLE
         )
         log.info("Подключение к БД успешно")
-
     except Exception as e:
         log.error(f"Ошибка при подключении к базе данных: {e}")
         raise RuntimeError("Не удалось подключиться к базе данных")
 
-    # repositories + services
     calc_result_repository = make_calc_result_repository(
         postgres_engine=postgres_engine,
     )
     calc_service = CalculationService(calc_result_repository=calc_result_repository)
-
-    # routers
-    app.include_router(
-        make_calc_router(
-            calc_service=calc_service,
-            transaction=postgres_engine.transaction
-        )
+    calc_router = make_calc_router(
+        calc_service=calc_service,
+        transaction=postgres_engine.transaction,
     )
+    app.include_router(calc_router)
 
     yield
 
-    # ---- disconnect
     try:
         await postgres_engine.disconnect()
         log.info("Отключение от БД успешно")
     except Exception as e:
         log.error(f"Ошибка при отключении от базы данных: {e}")
 
-
-# ---------------------------
-#          FASTAPI APP
-# ---------------------------
-
 app = FastAPI(lifespan=lifespan, title=APP_TITLE)
-
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "time": datetime.now(timezone.utc).isoformat()}
-
-
-# ---------------------------
-#        ENTRYPOINT
-# ---------------------------
 
 if __name__ == "__main__":
     uvicorn.run(
