@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from decimal import Decimal
 from typing import Awaitable, Callable
@@ -7,9 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, condecimal, field_validator
 from starlette import status
 
-from app.services.calc import CalculationService
-
-log = logging.getLogger(__name__)
+from app.services.calc import CalcService
 
 
 class Material(BaseModel):
@@ -38,7 +35,9 @@ class CalcRequest(BaseModel):
         ...,
         title="Список материалов",
         description="Список материалов для расчета стоимости",
-        json_schema_extra={"example": [{"name": "Сталь", "qty": 12.3, "price_rub": 54.5}]},
+        json_schema_extra={
+            "example": [{"name": "Сталь", "qty": 12.3, "price_rub": 54.5}]
+        },
     )
 
     @field_validator("materials")
@@ -72,22 +71,22 @@ class CalcResponse(BaseModel):
 
 def make_calc_router(
     *,
-    calc_service: CalculationService,
-    transaction: Callable[[Callable[..., Awaitable]], Callable[..., Awaitable]]
+    calc_service: CalcService,
+    transaction: Callable[[Callable[..., Awaitable]], Callable[..., Awaitable]],
 ) -> APIRouter:
     router = APIRouter()
 
     @router.post("/calc")
     @transaction
-    async def calc(req: CalcRequest) -> CalcResponse:        
+    async def calc(req: CalcRequest) -> CalcResponse:
         try:
             materials_data = [m.model_dump() for m in req.materials]
             result = await calc_service.calculate_and_save(materials_data)
             return CalcResponse(**result)
-        except Exception as e:
-            log.error(f"Ошибка при обработке запроса /calc: {e}")
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Внутренняя ошибка сервиса"
+                detail="Внутренняя ошибка сервиса",
             )
+
     return router
