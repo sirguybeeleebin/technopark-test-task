@@ -1,49 +1,38 @@
-from datetime import datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock
 
 import pytest
 
 from app.repositories.calc_result import CalcResultRepository
-from app.services.calc import CalculationService
+from app.services.calc import CalcService
 
 
 @pytest.mark.asyncio
-async def test_calculate_and_save_success():
-    mock_calc_repo = AsyncMock(spec=CalcResultRepository)
-    mock_calc_repo.insert.return_value = {
-        "id": 1,
-        "total_cost_rub": Decimal("123.45"),
-        "created_at": datetime(2025, 11, 14, 12, 0)
-    }
+async def test_calculate_and_save():
+    mock_repo = AsyncMock(spec=CalcResultRepository)
+    mock_repo.insert.return_value = {"id": 1, "total_cost_rub": Decimal("200.0")}
 
-    calc_service = CalculationService(calc_result_repository=mock_calc_repo)
+    service = CalcService(calc_result_repository=mock_repo)
 
     materials = [
-        {"name": "Steel", "qty": 2, "price_rub": Decimal("50.00")},
-        {"name": "Plastic", "qty": 1, "price_rub": Decimal("23.45")}
+        {"qty": 2, "price_rub": 50},
+        {"qty": 1, "price_rub": 100},
     ]
 
-    resp = await calc_service.calculate_and_save(materials)
+    result = await service.calculate_and_save(materials)
 
-    assert resp["id"] == 1
-    assert resp["total_cost_rub"] == Decimal("123.45")
-    assert resp["created_at"] == datetime(2025, 11, 14, 12, 0)
-    mock_calc_repo.insert.assert_awaited_once_with(total_cost_rub=Decimal("123.45"))
+    mock_repo.insert.assert_awaited_once_with(total_cost_rub=200)
+    assert result == {"id": 1, "total_cost_rub": Decimal("200.0")}
 
 
 @pytest.mark.asyncio
-async def test_calculate_and_save_raises_internal_error():
-    mock_calc_repo = AsyncMock(spec=CalcResultRepository)
-    mock_calc_repo.insert.side_effect = Exception("DB error")
+async def test_calculate_and_save_empty_materials():
+    mock_repo = AsyncMock(spec=CalcResultRepository)
+    mock_repo.insert.return_value = {"id": 1, "total_cost_rub": Decimal("0.0")}
 
-    calc_service = CalculationService(calc_result_repository=mock_calc_repo)
+    service = CalcService(calc_result_repository=mock_repo)
 
-    materials = [
-        {"name": "Copper", "qty": 1, "price_rub": Decimal("100.00")}
-    ]
+    result = await service.calculate_and_save([])
 
-    with pytest.raises(Exception):
-        await calc_service.calculate_and_save(materials)
-    
-    mock_calc_repo.insert.assert_awaited_once_with(total_cost_rub=Decimal("100.00"))
+    mock_repo.insert.assert_awaited_once_with(total_cost_rub=0)
+    assert result == {"id": 1, "total_cost_rub": Decimal("0.0")}

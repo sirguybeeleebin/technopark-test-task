@@ -24,38 +24,41 @@
 
 ```
 .
-├── app                      # Основной пакет приложения
-│   ├── api                  # REST API эндпоинты
-│   │   ├── calc.py          # Эндпоинт /calc и Pydantic модели запроса/ответа
-│   │   ├── calc_test.py     # Тесты для API /calc
-│   │   └── __init__.py      # Пакет API
-│   ├── engines              # Работа с внешними движками/соединениями
-│   │   ├── __init__.py      # Пакет движков
-│   │   ├── postgres.py      # Класс PostgresEngine с транзакциями и сессиями
-│   │   └── postgres_test.py # Тесты для PostgresEngine
-│   ├── __init__.py          # Пакет приложения
-│   ├── main.py              # Точка входа FastAPI, подключение БД, роутеров, lifespan
-│   ├── repositories         # Работа с базой данных (DAO)
-│   │   ├── calc_result.py       # Репозиторий для сохранения результатов расчета
-│   │   ├── calc_result_test.py  # Тесты для CalcResultRepository
-│   │   ├── __init__.py          # Пакет репозиториев
-│   │   └── models            # ORM модели SQLAlchemy
-│   │       ├── base.py       # Базовый класс Base для declarative моделей
-│   │       ├── calc_result.py# Модель CalcResult с схемой и колонками
-│   │       └── __init__.py   # Пакет моделей
-│   └── services            # Сервисный слой бизнес-логики
-│       ├── calc.py          # Логика расчета стоимости и сохранения результата
-│       ├── calc_test.py     # Тесты для CalculationService
-│       └── __init__.py      # Пакет сервисов
-├── docker-compose.yml       # Конфигурация Docker Compose для приложения и БД
-├── Dockerfile               # Сборка Docker-образа приложения
-├── example.env              # Пример файла с переменными окружения
-├── Makefile                 # Утилиты для сборки, запуска и тестов через make
-├── migrations               # SQL-миграции базы данных
-│   └── 002_create_calc_result_table.sql  # Создание таблицы calc_results
-├── poetry.lock              # Файл блокировки зависимостей Poetry
-├── pyproject.toml           # Настройка проекта Poetry (зависимости, скрипты)
-└── README.md                # Документация проекта и инструкция по запуску
+├── app                     # Основной пакет приложения
+│   ├── routers             # Слой API / маршруты FastAPI
+│   │   ├── calc.py         # Реализация эндпоинтов для калькулятора
+│   │   ├── calc_test.py    # Тесты для эндпоинтов калькулятора
+│   │   └── __init__.py     # Делает папку Python-пакетом
+│   ├── configs             # Конфигурации и настройки приложения
+│   │   ├── db.py           # Настройка подключения к базе данных и менеджер сессий
+│   │   ├── db_test.py      # Тесты для работы с БД и менеджера сессий
+│   │   ├── __init__.py     # Делает папку Python-пакетом
+│   │   ├── logging.py      # Настройка логирования (JSON-логгер и др.)
+│   │   ├── logging_test.py # Тесты логирования
+│   │   └── settings.py     # Конфигурационные переменные (env, constants)
+│   ├── __init__.py         # Делает app Python-пакетом
+│   ├── main.py             # Точка входа приложения FastAPI (uvicorn)
+│   ├── repositories        # Слой доступа к данным (DAO / Repository)
+│   │   ├── calc_result.py       # Репозиторий для работы с таблицей calc_result
+│   │   ├── calc_result_test.py  # Тесты репозитория calc_result
+│   │   ├── __init__.py          # Делает папку Python-пакетом
+│   │   └── models                # SQLAlchemy модели
+│   │       ├── base.py           # Базовый класс моделей и сессия
+│   │       ├── calc_result.py    # Модель таблицы calc_result
+│   │       └── __init__.py       # Делает models Python-пакетом
+│   └── services          # Слой бизнес-логики
+│       ├── calc.py       # Сервис калькулятора (расчеты, обработка данных)
+│       ├── calc_test.py  # Тесты для сервиса калькулятора
+│       └── __init__.py   # Делает services Python-пакетом
+├── docker-compose.yml     # Конфигурация Docker Compose (БД, сервисы)
+├── Dockerfile             # Dockerfile для сборки образа приложения
+├── example.env            # Пример .env файла с переменными окружения
+├── Makefile               # Makefile для форматирования, тестов, запуска и очистки
+├── migrations             # SQL скрипты миграций базы данных
+│   └── 001_create_calc_result_table.sql  # Скрипт создания таблицы calc_result
+├── poetry.lock            # Файл блокировки зависимостей Poetry
+├── pyproject.toml         # Настройка Poetry, зависимости и dev-зависимости
+└── README.md              # Документация проекта
 ```
 
 ---

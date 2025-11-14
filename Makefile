@@ -1,9 +1,9 @@
-.PHONY: format lint
+.PHONY: format lint test prune up
 
 format:
 	poetry run autoflake --in-place --remove-unused-variables --remove-all-unused-imports -r .
 	poetry run isort .
-	poetry run ruff check --fix .
+	poetry run ruff format .
 
 lint:
 	poetry run ruff check .
