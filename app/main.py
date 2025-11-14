@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import os
@@ -6,7 +5,6 @@ import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from logging import config as logging_config
-from pathlib import Path
 
 import uvicorn
 from dotenv import load_dotenv
@@ -15,22 +13,9 @@ from fastapi import FastAPI
 from app.api.calc import make_calc_router
 from app.engines.postgres import make_postgres_engine
 from app.repositories.calc_result import make_calc_result_repository
-from app.services.calc import CalculationService
+from app.services.calc import make_calculation_service
 
-parser = argparse.ArgumentParser(description="FastAPI приложение с настраиваемым .env файлом")
-parser.add_argument(
-    "--env-file",
-    type=str,
-    default=".env",
-    help="Путь к .env файлу для загрузки конфигурации",
-)
-args, _ = parser.parse_known_args()
-
-env_path = Path(args.env_file)
-if env_path.exists():
-    load_dotenv(env_path)
-else:
-    print(f"Внимание: файл .env {env_path} не найден, используются переменные окружения по умолчанию")
+load_dotenv()
 
 APP_TITLE = os.getenv("APP_TITLE", "Калькулятор стоимости")
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
@@ -109,7 +94,7 @@ async def lifespan(app: FastAPI):
     calc_result_repository = make_calc_result_repository(
         postgres_engine=postgres_engine,
     )
-    calc_service = CalculationService(calc_result_repository=calc_result_repository)
+    calc_service = make_calculation_service(calc_result_repository=calc_result_repository)
     calc_router = make_calc_router(
         calc_service=calc_service,
         transaction=postgres_engine.transaction,

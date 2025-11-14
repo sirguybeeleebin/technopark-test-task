@@ -9,18 +9,24 @@ from app.repositories.models.calc_result import CalcResult
 
 @pytest.mark.asyncio
 async def test_insert_calc_result_mocked():
-    # Создаем мокнутую сессию
-    mock_session = AsyncMock()
+    # Мокнутый объект CalcResult
     fake_row = CalcResult(id=1, total_cost_rub=Decimal("123.45"))
 
-    # Настраиваем execute, чтобы возвращать объект с async scalar_one_or_none
-    mock_execute_result = AsyncMock()
-    mock_execute_result.scalar_one_or_none.return_value = fake_row  # Важно: без await
+    # Мокнутый результат execute
+    mock_execute_result = MagicMock()
+    mock_execute_result.scalar_one_or_none.return_value = fake_row
+
+    # Мокнутая сессия
+    mock_session = AsyncMock()
     mock_session.execute.return_value = mock_execute_result
-    mock_session.flush.return_value = AsyncMock()  # flush - async
+    mock_session.commit.return_value = None
+    mock_session.flush.return_value = None
+    mock_session.rollback.return_value = None
 
     # Мокнутый движок
     mock_engine = MagicMock()
+    mock_engine.get_session_from_ctx.return_value = None
+    # Здесь важно возвращать сессию **не awaitable**
     mock_engine.get_session.return_value = mock_session
 
     # Репозиторий
@@ -34,5 +40,5 @@ async def test_insert_calc_result_mocked():
     assert result["total_cost_rub"] == Decimal("123.45")
 
     # Проверяем вызовы
-    mock_session.execute.assert_called()
-    mock_session.flush.assert_called()
+    mock_session.execute.assert_called_once()
+    mock_session.commit.assert_called_once()

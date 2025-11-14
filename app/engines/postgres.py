@@ -101,17 +101,13 @@ class PostgresEngine:
             log.error(f"Пинг к базе данных не удался: {e}")
             return False
 
-    def get_session(self) -> AsyncSession:
+    def get_session_from_ctx(self) -> AsyncSession | None:       
+        return self._session_ctx.get()
+
+    def get_session(self) -> AsyncSession:        
         if self._session_factory is None:
             raise RuntimeError("Фабрика сессий не инициализирована")
-
-        session = self._session_ctx.get()
-        if session is None:
-            session = self._session_factory()
-            self._session_ctx.set(session)
-            log.info("Временная сессия создана")
-
-        return session
+        return self._session_factory()
 
     def transaction(
         self,
@@ -122,32 +118,26 @@ class PostgresEngine:
         async def wrapper(*args, **kwargs):
             if self._session_factory is None:
                 raise RuntimeError("Фабрика сессий не инициализирована")
-
-            session: AsyncSession | None = self._session_ctx.get()
-            temp_session = False
-
-            if session is None:
-                session = self._session_factory()
-                temp_session = True
-                log.info("Временная сессия создана для транзакции")
-
+           
+            session: AsyncSession = self._session_factory()
             token = self._session_ctx.set(session)
+            log.info("Создана новая сессия и помещена в контекст для транзакции")
 
             try:
-                async with session.begin():
-                    result = await func(*args, **kwargs)
-                    log.info("Транзакция успешно завершена")
-                    return result
+                result = await func(*args, **kwargs)
+                await session.commit()
+                log.info("Транзакция успешно завершена (commit)")
+                return result
 
             except Exception:
-                log.exception("Ошибка в транзакции")
+                await session.rollback()
+                log.exception("Ошибка в транзакции — выполнен rollback")
                 raise
 
             finally:
                 self._session_ctx.reset(token)
-                if temp_session:
-                    await session.close()
-                    log.info("Временная сессия закрыта после транзакции")
+                await session.close()
+                log.info("Сессия закрыта после транзакции и удалена из контекста")
 
         return wrapper
 

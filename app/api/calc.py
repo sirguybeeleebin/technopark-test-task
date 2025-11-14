@@ -72,18 +72,18 @@ class CalcResponse(BaseModel):
 
 def make_calc_router(
     *,
-    calc_service: "CalculationService",
+    calc_service: CalculationService,
     transaction: Callable[[Callable[..., Awaitable]], Callable[..., Awaitable]]
 ) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/calc", response_model=CalcResponse)
+    @router.post("/calc")
     @transaction
     async def calc(req: CalcRequest) -> CalcResponse:        
         try:
             materials_data = [m.model_dump() for m in req.materials]
             result = await calc_service.calculate_and_save(materials_data)
-            return result
+            return CalcResponse(**result)
         except Exception as e:
             log.error(f"Ошибка при обработке запроса /calc: {e}")
             raise HTTPException(

@@ -15,16 +15,20 @@ class CalcResultRepository:
         self._postgres_engine = postgres_engine
 
     async def insert(self, *, total_cost_rub: Decimal) -> dict:        
-        session: AsyncSession = self._postgres_engine.get_session()
+        session: AsyncSession | None = self._postgres_engine.get_session_from_ctx()
+        new_session = False
+
+        if session is None:
+            session = self._postgres_engine.get_session()
+            new_session = True
 
         try:
             stmt = insert(CalcResult).values(total_cost_rub=total_cost_rub).returning(CalcResult)
             result = await session.execute(stmt)
-            await session.flush()
-            
-            row: CalcResult | None = await result.scalar_one_or_none()
+            row: CalcResult | None = result.scalar_one_or_none()
             if row is None:
                 raise RuntimeError("Не удалось сохранить запись в базе данных")
+            await session.commit()   if new_session else await session.flush()     
 
             log.info(f"Результат сохранён: id={row.id}, total_cost_rub={row.total_cost_rub}")
             return {
@@ -35,8 +39,10 @@ class CalcResultRepository:
 
         except Exception as e:
             log.error(f"Ошибка при insert: {e}")
+            if new_session:
+                await session.rollback()
             raise
 
 
-def make_calc_result_repository(postgres_engine: PostgresEngine) -> CalcResultRepository:    
+def make_calc_result_repository(postgres_engine: PostgresEngine) -> CalcResultRepository:
     return CalcResultRepository(postgres_engine=postgres_engine)

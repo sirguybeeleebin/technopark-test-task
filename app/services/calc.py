@@ -24,3 +24,7 @@ class CalculationService:
             raise
 
         return calc_result_data
+    
+
+def make_calculation_service(calc_result_repository: CalcResultRepository) -> CalculationService:
+    return CalculationService(calc_result_repository=calc_result_repository)
