@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Awaitable, Callable
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, condecimal, field_validator
+from pydantic import BaseModel, Field, field_validator
 from starlette import status
 
 from app.services.calc import CalcService
@@ -16,16 +16,18 @@ class Material(BaseModel):
         description="Наименование материала",
         json_schema_extra={"example": "Сталь"},
     )
-    qty: condecimal(gt=0) = Field(
+    qty: Decimal = Field(
         ...,
         title="Количество",
         description="Количество материала (дробное или целое, больше 0)",
+        gt=0,
         json_schema_extra={"example": 12.3},
     )
-    price_rub: condecimal(gt=0) = Field(
+    price_rub: Decimal = Field(
         ...,
         title="Цена в рублях",
         description="Цена за единицу материала в рублях (больше 0)",
+        gt=0,
         json_schema_extra={"example": 54.5},
     )
 
