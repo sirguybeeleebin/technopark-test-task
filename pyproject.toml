@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "technopark_test_task"
+version = "0.1.0"
+description = "Проект FastAPI с асинхронным доступом к PostgreSQL через SQLAlchemy 2"
+authors = ["Ваше Имя <you@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+fastapi = ">=0.100.0"
+uvicorn = {extras = ["standard"], version = ">=0.23.0"}
+asyncpg = ">=0.27.0"
+sqlalchemy = ">=2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0"
+pytest-asyncio = ">=0.21.0"
+autoflake = ">=2.1"
+isort = ">=5.12.0"
+ruff = ">=0.0.335"
+aiosqlite = ">=0.19.0"
+httpx = "^0.28.1"
+testcontainers = "^4.13.3"
+
