@@ -24,39 +24,38 @@
 
 ```
 .
-├── app                     # Основной пакет приложения
-│   ├── routers             # Слой API / маршруты FastAPI
-│   │   ├── calc.py         # Реализация эндпоинтов для калькулятора
-│   │   ├── calc_test.py    # Тесты для эндпоинтов калькулятора
-│   │   └── __init__.py     # Делает папку Python-пакетом
-│   ├── configs             # Конфигурации и настройки приложения
-│   │   ├── db.py           # Настройка подключения к базе данных и менеджер сессий
-│   │   ├── db_test.py      # Тесты для работы с БД и менеджера сессий
-│   │   ├── __init__.py     # Делает папку Python-пакетом
-│   │   └── settings.py     # Конфигурационные переменные (переменные окружения, логирвоание)
-│   ├── __init__.py         # Делает app Python-пакетом
-│   ├── main.py             # Точка входа приложения FastAPI (uvicorn)
-│   ├── repositories        # Слой доступа к данным (DAO / Repository)
-│   │   ├── calc_result.py       # Репозиторий для работы с таблицей calc_result
-│   │   ├── calc_result_test.py  # Тесты репозитория calc_result
-│   │   ├── __init__.py          # Делает папку Python-пакетом
-│   │   └── models                # SQLAlchemy модели
-│   │       ├── base.py           # Базовый класс моделей и сессия
-│   │       ├── calc_result.py    # Модель таблицы calc_result
-│   │       └── __init__.py       # Делает models Python-пакетом
-│   └── services          # Слой бизнес-логики
-│       ├── calc.py       # Сервис калькулятора (расчеты, обработка данных)
-│       ├── calc_test.py  # Тесты для сервиса калькулятора
-│       └── __init__.py   # Делает services Python-пакетом
-├── docker-compose.yml     # Конфигурация Docker Compose (БД, сервисы)
-├── Dockerfile             # Dockerfile для сборки образа приложения
-├── example.env            # Пример .env файла с переменными окружения
-├── Makefile               # Makefile для форматирования, тестов, запуска и очистки
-├── migrations             # SQL скрипты миграций базы данных
+├── app                          # Основной пакет приложения
+│   ├── __init__.py              # Инициализация пакета app
+│   ├── main.py                  # Точка входа FastAPI приложения
+│   ├── repositories             # Пакет для работы с базой данных (репозитории)
+│   │   ├── calc_result.py       # Репозиторий для работы с сущностью CalcResult
+│   │   ├── calc_result_test.py  # Тесты для репозитория CalcResult
+│   │   ├── __init__.py          # Инициализация пакета repositories
+│   │   └── models               # Пакет с моделями SQLAlchemy
+│   │       ├── base.py          # Базовая модель/ORM базовый класс
+│   │       ├── calc_result.py   # Модель CalcResult для SQLAlchemy
+│   │       └── __init__.py      # Инициализация пакета models
+│   ├── routers                  # Пакет с FastAPI роутерами
+│   │   ├── calc.py              # Роутеры для эндпоинтов калькулятора
+│   │   ├── calc_test.py         # Тесты для роутеров калькулятора
+│   │   └── __init__.py          # Инициализация пакета routers
+│   ├── services                 # Пакет с бизнес-логикой / сервисами
+│   │   ├── calc.py              # Сервис CalcService с бизнес-логикой
+│   │   ├── calc_test.py         # Тесты для сервиса CalcService
+│   │   └── __init__.py          # Инициализация пакета services
+│   └── session_manager          # Пакет для работы с сессиями и транзакциями
+│       ├── __init__.py          # Инициализация пакета session_manager
+│       ├── session_manager.py   # Класс SessionManager и декоратор транзакций
+│       └── session_manager_test.py  # Тесты для SessionManager
+├── docker-compose.yml           # Конфигурация Docker Compose для приложения и БД
+├── Dockerfile                   # Dockerfile для сборки контейнера приложения
+├── example.env                  # Пример файла окружения с переменными
+├── Makefile                     # Makefile с командами для разработки/сборки
+├── migrations                   # Папка с SQL-миграциями
 │   └── 001_create_calc_result_table.sql  # Скрипт создания таблицы calc_result
-├── poetry.lock            # Файл блокировки зависимостей Poetry
-├── pyproject.toml         # Настройка Poetry, зависимости и dev-зависимости
-└── README.md              # Документация проекта
+├── poetry.lock                  # Файл блокировки зависимостей Poetry
+├── pyproject.toml               # Конфигурационный файл Poetry и проекта
+└── README.md                    # Документация проекта
 ```
 
 ---

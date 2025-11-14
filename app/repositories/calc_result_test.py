@@ -21,7 +21,7 @@ async def test_insert_returns_dict():
         async def get_session(self):
             yield mock_session
 
-    repo = CalcResultRepository(DummySessionManager())
+    repo = CalcResultRepository(session_manager=DummySessionManager())
     result = await repo.insert(total_cost_rub=Decimal("123.45"))
 
     mock_session.execute.assert_awaited_once()
