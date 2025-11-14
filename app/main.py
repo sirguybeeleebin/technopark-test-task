@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -6,16 +5,10 @@ import uvicorn
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.configs import db
-from app.configs import logging as logging_module
-from app.configs import settings
+from app.configs import db, settings
 from app.repositories.calc_result import make_calc_result_repository
 from app.routers.calc import make_calc_router
 from app.services.calc import make_calc_service
-
-logging_module.configure_logging(
-    level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO)
-)
 
 
 @asynccontextmanager
